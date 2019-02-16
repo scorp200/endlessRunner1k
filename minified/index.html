@@ -1,0 +1,4 @@
+<canvas id=a></canvas>
+<script>a.width=1440;a.height=900;c=a.getContext("2d");addEventListener("keydown",function(f){32==f.keyCode&&(e=!0)});addEventListener("keyup",function(f){32==f.keyCode&&(e=!1)});var e=!1,g=performance.now(),k=50,l=[],m=620,n=0,p=2,q=!1,r=0;r=-300/Math.pow(.4,2);p=.4*Math.abs(r);l.push({x:150,y:700,a:a.width/2,b:a.height-700});
+function t(f){requestAnimationFrame(t);var d=f-g;if(15.6<d){d/=1E3;250>k&&(k+=d);c.clearRect(0,0,a.width,a.height);c.beginPath();e&&q?(q=!1,n=p):!e&&0<n&&(n=0);q||(n+=r*d);m-=n*d;q=!1;c.fillStyle="#90e5e1";c.fillRect(300,m,32,76);var h=l[l.length-1],v=l[0];0>v.x+v.a&&l.shift();h.x+h.a<a.width-70&&l.push({x:u(h.x+h.a+2*k,h.x+h.a+8*k),y:u(650,750),a:u(700,1400),b:a.height});c.fillStyle="#acb4f0";l.forEach(function(b){0>n&&332>b.x&&300<b.x+b.a&&m+76-n*d>=b.y&&m+76-n*d<b.y+5-n*d&&(m=b.y-76,n=0,q=!0);
+b.x-=10*k*d;c.fillRect(b.x,b.y,b.a,b.b)});g=f}}t(g);function u(f,d){return Math.random()*(d-f)+f};</script>

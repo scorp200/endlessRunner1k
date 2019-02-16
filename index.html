@@ -1,0 +1,102 @@
+<canvas id=a></canvas>
+<script>
+	a.width = 1440;
+	a.height = 900;
+	c = a.getContext("2d");
+	c.font = 'bold ' + 50 + "px Helvetica";
+	addEventListener("keydown", function(e) {
+		if (e.keyCode == 32) space = true
+	});
+	addEventListener("keyup", function(e) {
+		if (e.keyCode == 32) space = false;
+	});
+	var tickint = 15.6,
+		space = false,
+		fx = 0.5,
+		last = performance.now(),
+		speed = 50,
+		plat = [],
+		platY = 700,
+		time = 0,
+		score = 0,
+		g = -1875,
+		player = {
+			x: 0,
+			y: 0,
+			vy: 0,
+			jump: 2,
+			s: 32,
+			onGround: false
+		},
+		addPlat = (x, y, w, h) => plat.push({
+			x: x,
+			y: y,
+			w: w,
+			h: h
+		}),
+		randomRange = (min, max) => Math.random() * (max - min) + min,
+		tick = (now) => {
+			requestAnimationFrame(tick);
+			var dt = (now - last);
+			if (dt > tickint) {
+				time += dt;
+				dt = dt / 1000;
+				if (speed < 250) speed += dt;
+				//code
+				c.fillStyle = '#242930';
+				c.fillRect(0, 0, a.width, a.height);
+				c.beginPath();
+				//player
+				if (space && player.onGround) {
+					player.onGround = false;
+					player.vy = player.jump;
+				} else if (!space && player.vy > 0) player.vy = 0;
+				if (!player.onGround) player.vy += g * dt;
+				player.y -= player.vy * dt;
+				player.onGround = false;
+				//platform
+				var plast = plat[plat.length - 1];
+				var pfirst = plat[0];
+				if (pfirst.x + pfirst.w < 0) plat.shift();
+				if (plast.x + plast.w < a.width - 70) {
+					var dist = randomRange(speed * 2, speed * 2);
+					//1250
+					addPlat(plast.x + plast.w + dist, pt > 0 ? platY - 0.15 * dist / 2 : platY + 0.15 * dist / 2, randomRange(platY * 0.5, platY * 2), a.height);
+					pt *= -1;
+					console.log(dist);
+				}
+				//addPlat(randomRange(plast.x + plast.w + speed * 2, plast.x + plast.w + speed * 8), randomRange(platY - 50, platY + 50), randomRange(platY, platY * 2), a.height);
+				plat.forEach((p) => {
+					if (player.vy < 0 && player.x + player.s > p.x && player.x < p.x + p.w && player.y + player.s - (player.vy * dt) >= p.y && player.y + player.s - (player.vy * dt) < p.y + 5 - (player.vy * dt)) {
+						player.y = p.y - player.s;
+						player.vy = 0;
+						player.onGround = true;
+					}
+					p.x -= speed * 10 * dt;
+					c.fillStyle = '#acb4f0';
+					c.fillRect(p.x, p.y, p.w, p.h);
+					c.fillStyle = '#676c90';
+					c.fillRect(p.x + p.w * fx, p.y, p.w - p.w * fx, p.h);
+				});
+				//score
+				var add = 10 * dt;
+				score += add + (add * (speed / 50));
+				//
+				c.fillStyle = '#90e5e1';
+				c.fillRect(player.x, player.y, player.s, player.s);
+
+				c.fillText(Math.floor(score), 10, 50);
+				last = now;
+			}
+		},
+		start = _ => {
+			player.x = 300;
+			player.y = 620;
+			plat.length = 0;
+			addPlat(150, platY, a.width / 2, a.height - platY);
+			tick(last);
+		}
+	player.jump = Math.abs(g) * 0.3;
+	var pt = 1;
+	start();
+</script>
