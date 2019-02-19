@@ -3,28 +3,27 @@
 	a.width = 1440;
 	a.height = 900;
 	c = a.getContext("2d");
-	c.font = 'bold ' + 50 + "px Helvetica";
-	addEventListener("keydown", function(e) {
+	addEventListener("keydown", (e) => {
 		if (e.keyCode == 32) space = true
 	});
-	addEventListener("keyup", function(e) {
+	addEventListener("keyup", (e) => {
 		if (e.keyCode == 32) space = false;
 	});
 	var tickint = 15.6,
 		space = false,
 		fx = 0.5,
-		last = performance.now(),
+		state = 0,
+		last = 0,
 		speed = 50,
 		plat = [],
 		platY = 700,
-		time = 0,
 		score = 0,
 		g = -1875,
 		player = {
 			x: 0,
 			y: 0,
 			vy: 0,
-			jump: 2,
+			jump: Math.abs(g) * 0.3,
 			s: 32,
 			onGround: false
 		},
@@ -39,64 +38,68 @@
 			requestAnimationFrame(tick);
 			var dt = (now - last);
 			if (dt > tickint) {
-				time += dt;
 				dt = dt / 1000;
-				if (speed < 250) speed += dt;
 				//code
 				c.fillStyle = '#242930';
 				c.fillRect(0, 0, a.width, a.height);
 				c.beginPath();
-				//player
-				if (space && player.onGround) {
-					player.onGround = false;
-					player.vy = player.jump;
-				} else if (!space && player.vy > 0) player.vy = 0;
-				if (!player.onGround) player.vy += g * dt;
-				player.y -= player.vy * dt;
-				player.onGround = false;
-				//platform
-				var plast = plat[plat.length - 1];
-				var pfirst = plat[0];
-				if (pfirst.x + pfirst.w < 0) plat.shift();
-				if (plast.x + plast.w < a.width - 70) {
-					var dist = randomRange(speed * 2, speed * 2);
-					//1250
-					addPlat(plast.x + plast.w + dist, pt > 0 ? platY - 0.15 * dist / 2 : platY + 0.15 * dist / 2, randomRange(platY * 0.5, platY * 2), a.height);
-					pt *= -1;
-					console.log(dist);
-				}
-				//addPlat(randomRange(plast.x + plast.w + speed * 2, plast.x + plast.w + speed * 8), randomRange(platY - 50, platY + 50), randomRange(platY, platY * 2), a.height);
-				plat.forEach((p) => {
-					if (player.vy < 0 && player.x + player.s > p.x && player.x < p.x + p.w && player.y + player.s - (player.vy * dt) >= p.y && player.y + player.s - (player.vy * dt) < p.y + 5 - (player.vy * dt)) {
-						player.y = p.y - player.s;
-						player.vy = 0;
-						player.onGround = true;
-					}
-					p.x -= speed * 10 * dt;
-					c.fillStyle = '#acb4f0';
-					c.fillRect(p.x, p.y, p.w, p.h);
-					c.fillStyle = '#676c90';
-					c.fillRect(p.x + p.w * fx, p.y, p.w - p.w * fx, p.h);
-				});
-				//score
-				var add = 10 * dt;
-				score += add + (add * (speed / 50));
-				//
+				c.font = 'bold ' + 50 + "px Helvetica";
+				c.textAlign = "center";
+				c.textBaseline = "middle";
 				c.fillStyle = '#90e5e1';
-				c.fillRect(player.x, player.y, player.s, player.s);
+				c.fillText(Math.floor(score), a.width / 2, 50);
+				if (state == 0) {
+					c.fillText('Space', a.width / 2, a.height / 2);
+					if (space) state = 1, start();
 
-				c.fillText(Math.floor(score), 10, 50);
+				} else if (state == 1) {
+					if (speed < 250) speed += dt;
+					//player
+					if (space && player.onGround) {
+						player.onGround = false;
+						player.vy = player.jump;
+					} else if (!space && player.vy > 0) player.vy = 0;
+					if (!player.onGround) player.vy += g * dt;
+					player.y -= player.vy * dt;
+					c.fillRect(player.x, player.y, player.s, player.s);
+					if (player.y > a.height)
+						state = 0;
+					//platform
+					var plast = plat[plat.length - 1]
+					if (plat[0].x + plat[0].w < 0) plat.shift();
+					if (plast.x + plast.w < a.width - 70)
+						addPlat(plast.x + plast.w + randomRange(speed * 2, speed * 5), randomRange(platY - 50, platY + 50), randomRange(platY * 0.5, platY * 2), a.height);
+					var onground = false;
+					plat.forEach((p) => {
+						var dtvy = player.vy * dt;
+						//if (player.vy < 0 && player.x + player.s > p.x && player.x < p.x + p.w && player.y + player.s - (player.vy * dt) >= p.y && player.y + player.s - (player.vy * dt) < p.y + 5 - (player.vy * dt)) {
+						if (player.x < p.x + p.w && player.x + player.s > p.x) {
+							if (player.vy < 0 && player.y - dtvy < p.y && player.y + player.s - dtvy > p.y) {
+								player.y = p.y - player.s;
+								player.vy = 0;
+								player.onGround = true;
+							}
+							onground = true;
+						} else if (!onground) player.onGround = false;
+						p.x -= speed * 10 * dt;
+						c.fillStyle = '#acb4f0';
+						c.fillRect(p.x, p.y, p.w, p.h);
+						c.fillStyle = '#676c90';
+						c.fillRect(p.x + p.w * fx, p.y, p.w - p.w * fx, p.h);
+					});
+					//score
+					var add = 10 * dt;
+					score += add + (add * (speed / 50));
+				}
 				last = now;
 			}
 		},
 		start = _ => {
 			player.x = 300;
 			player.y = 620;
-			plat.length = 0;
+			plat.length = player.vy = score = 0;
+			speed = 50;
 			addPlat(150, platY, a.width / 2, a.height - platY);
-			tick(last);
 		}
-	player.jump = Math.abs(g) * 0.3;
-	var pt = 1;
-	start();
+	tick(last);
 </script>
